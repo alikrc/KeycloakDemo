@@ -1,0 +1,37 @@
+version: '3.4'
+
+services:
+  keycloakdemo:
+    image: ${DOCKER_REGISTRY-}keycloakdemo
+    build:
+      context: .
+      dockerfile: KeycloakDemo/Dockerfile
+  
+  keycloak:
+    image: bitnami/keycloak
+    environment:
+      - KEYCLOAK_ADMIN=user
+      - KEYCLOAK_ADMIN_PASSWORD=bitnami
+      - KEYCLOAK_IMPORT=/tmp/realm-export.json
+      - KEYCLOAK_DATABASE_HOST=postgres  # Updated line to match the service name
+      - KEYCLOAK_DATABASE_PORT=5432
+      - KEYCLOAK_DATABASE_NAME=keycloak
+      - KEYCLOAK_DATABASE_USER=keycloak
+      - KEYCLOAK_DATABASE_PASSWORD=password
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./realm-export.json:/tmp/realm-export.json
+    depends_on:
+      - postgres
+  
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=password 
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
